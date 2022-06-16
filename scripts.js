@@ -1,20 +1,29 @@
 const startButton = document.getElementById('start-btn')
+const nextButton = document.getElementById('next-btn')
+const resultsButton = document.getElementById('results-btn')
 const questionContainerElement = document.getElementById('question-container')
 const questionElement = document.getElementById('question')
 const answerButtonsElement = document.getElementById('answer-buttons')
-const nextButton = document.getElementById('next-btn')
+const resultsContainerElement = document.getElementById('results-container')
+const resultElement = document.getElementById('result')
+const correctAnswersElement = document.getElementById('correct-answers')
+const allAnswersElement = document.getElementById('all-answers')
 
 let shuffledQuestions, currentQuestionIndex
+let score, total
 
 startButton.addEventListener('click', startGame)
 nextButton.addEventListener('click', () => {
     currentQuestionIndex++
     setNextQuestion()
 })
+resultsButton.addEventListener('click', showResults)
 
 function startGame() {
     console.log('Started')
+    score = 0
     startButton.classList.add('hide')
+    resultsContainerElement.classList.add('hide')
     shuffledQuestions = questions.sort(() => Math.random() - .5)
     currentQuestionIndex = 0
     questionContainerElement.classList.remove('hide')
@@ -40,6 +49,21 @@ function showQuestion(question) {
     })
 }
 
+function showResults() {
+    clearStatusClass(document.body)
+
+    total = Math.floor(score * 100 / questions.length)
+    resultElement.innerText = `${total}%`
+    correctAnswersElement.innerText = score
+    allAnswersElement.innerText = questions.length
+
+    resultsContainerElement.classList.remove('hide')
+    questionContainerElement.classList.add('hide')
+    startButton.innerText = 'Restart'
+    startButton.classList.remove('hide')
+    resultsButton.classList.add('hide')
+}
+
 function resetState() {
     clearStatusClass(document.body)
     nextButton.classList.add('hide')
@@ -51,6 +75,10 @@ function resetState() {
 function selectAnswer(e) {
     const selectedButton = e.target
     const correct = selectedButton.dataset.correct
+
+    if (correct) score++
+    disableAnswerButtons()
+
     setStatusClass(document.body, correct)
     Array.from(answerButtonsElement.children).forEach(button => {
         setStatusClass(button, button.dataset.correct)
@@ -58,9 +86,14 @@ function selectAnswer(e) {
     if (shuffledQuestions.length > currentQuestionIndex + 1) {
         nextButton.classList.remove('hide')
     } else {
-        startButton.innerText = 'Restart'
-        startButton.classList.remove('hide')
+        resultsButton.classList.remove('hide')
     }
+}
+
+function disableAnswerButtons() {
+    Array.from(answerButtonsElement.children).forEach(button => {
+        button.removeEventListener('click', selectAnswer)
+    })
 }
 
 function setStatusClass(element, correct) {
